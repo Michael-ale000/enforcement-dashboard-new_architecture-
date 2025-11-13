@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+    <h2>ICE Arrests Dashboard</h2>
+
+    <!-- Filters -->
+    <form method="get" action="{% url 'arrests_dashboard' %}" class="filters-form">
+        <label>State
+            <select name="state">
+                {% for s in states %}
+                <option value="{{ s }}" {% if selected_state == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>Composition
+            <select name="composition">
+                {% for c in compositions %}
+                <option value="{{ c }}" {% if selected_composition == c %}selected{% endif %}>{{ c }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>Age Group
+            <select name="age_group">
+                {% for a in age_groups %}
+                <option value="{{ a }}" {% if selected_age_group == a %}selected{% endif %}>{{ a }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>Nationality
+            <select name="nationality_group">
+                {% for n in nationalities %}
+                <option value="{{ n }}" {% if selected_nationality == n %}selected{% endif %}>{{ n }}</option>
+                {% endfor %}
+            </select>
+        </label>
+
+        <label>From
+            <input type="date" name="from_date" value="{{ from_date }}">
+        </label>
+
+        <label>To
+            <input type="date" name="to_date" value="{{ to_date }}">
+        </label>
+
+        <button type="submit">Apply Filters</button>
+    </form>
+
+    <!-- Charts -->
+    <div id="lineChart"></div>
+    <div id="barChart"></div>
+    <div id="aorHeatmap"></div>
+</div>
+
+<!-- Pass summary data -->
+<script id="summary-data" type="application/json">
+    {{ monthly_arrest_aggregated_data|safe }}
+</script>
+
+<!-- Pass AOR heatmap data -->
+<script id="aor-heatmap-data" type="application/json">
+    {{ aor_heatmap_data|safe }}
+</script>
+
+<!-- D3.js & Plotly -->
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script src="https://cdn.plot.ly/plotly-2.26.0.min.js"></script>
+
+<script>
+    const summaryData = JSON.parse(document.getElementById("summary-data").textContent);
+    const aorData = JSON.parse(document.getElementById("aor-heatmap-data").textContent);
+
+    console.log("Loaded summary data:", summaryData);
+    console.log("Loaded AOR Heatmap data:", aorData);
+
+    // Normalize line/bar data
+    summaryData.forEach(d => {
+        d.month = new Date(d.month);
+        d.count = d.count ?? d.total ?? 0;
+    });
+
+    // Chart dimensions
+    const width = 900, height = 400, margin = { top: 50, right: 30, bottom: 50, left: 60 };
+
+    // --- MULTI-LINE CHART ---
+    function drawLineChart(data) {
+        const svg = d3.select("#lineChart").append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        const categoryKey = "gender" in data[0]
+            ? "gender"
+            : "apprehension_criminality" in data[0]
+            ? "apprehension_criminality"
+            : null;
+
+        let series;
+        if (categoryKey) {
+            series = Array.from(
+                d3.group(data, d => d[categoryKey] || "Unknown"),
+                ([key, values]) => ({ key, values: values.sort((a, b) => a.month - b.month) })
+            );
+        } else {
+            series = [{ key: "Total", values: data.sort((a, b) => a.month - b.month) }];
+        }
+
+        const x = d3.scaleTime()
+            .domain(d3.extent(data, d => d.month))
+            .range([margin.left, width - margin.right]);
+
+        const y = d3.scaleLinear()
+            .domain([0, d3.max(data, d => d.count)]).nice()
+            .range([height - margin.bottom, margin.top]);
+
+        const color = d3.scaleOrdinal()
+            .domain(series.map(s => s.key))
+            .range(d3.schemeTableau10);
+
+        const line = d3.line()
+            .x(d => x(d.month))
+            .y(d => y(d.count));
+
+        svg.selectAll(".line")
+            .data(series)
+            .join("path")
+            .attr("fill", "none")
+            .attr("stroke", d => color(d.key))
+            .attr("stroke-width", 2)
+            .attr("d", d => line(d.values));
+
+        svg.append("g")
+            .attr("transform", `translate(0,${height - margin.bottom})`)
+            .call(d3.axisBottom(x).ticks(8));
+
+        svg.append("g")
+            .attr("transform", `translate(${margin.left},0)`)
+            .call(d3.axisLeft(y));
+
+        const legend = svg.selectAll(".legend")
+            .data(series)
+            .join("g")
+            .attr("transform", (d, i) => `translate(${margin.left + i * 130}, ${margin.top - 30})`);
+
+        legend.append("rect")
+            .attr("width", 12)
+            .attr("height", 12)
+            .attr("fill", d => color(d.key));
+
+        legend.append("text")
+            .attr("x", 18)
+            .attr("y", 10)
+            .text(d => d.key)
+            .style("font-size", "12px")
+            .style("alignment-baseline", "middle");
+    }
+
+    // --- STACKED BAR CHART ---
+    function drawStackedBarChart(data, category) {
+        const svg = d3.select("#barChart").append("svg")
+            .attr("width", width)
+            .attr("height", height);
+
+        const keys = Array.from(new Set(data.map(d => d[category] || "Unknown")));
+
+        const x = d3.scaleBand()
+            .domain(data.map(d => d3.timeFormat("%Y-%m")(d.month)))
+            .range([margin.left, width - margin.right])
+            .padding(0.2);
+
+        const y = d3.scaleLinear()
+            .domain([0, d3.max(d3.rollups(data, v => d3.sum(v, d => d.count),
+                d => d3.timeFormat("%Y-%m")(d.month)), d => d[1])]).nice()
+            .range([height - margin.bottom, margin.top]);
+
+        const color = d3.scaleOrdinal().domain(keys).range(d3.schemeTableau10);
+
+        const stackedData = d3.stack()
+            .keys(keys)
+            .value((d, key) => {
+                const item = d[1].find(v => v[category] === key);
+                return item ? item.count : 0;
+            })(d3.group(data, d => d3.timeFormat("%Y-%m")(d.month)));
+
+        svg.append("g").selectAll("g")
+            .data(stackedData)
+            .join("g")
+            .attr("fill", d => color(d.key))
+            .selectAll("rect")
+            .data(d => d)
+            .join("rect")
+            .attr("x", d => x(d.data[0]))
+            .attr("y", d => y(d[1]))
+            .attr("height", d => y(d[0]) - y(d[1]))
+            .attr("width", x.bandwidth());
+
+        svg.append("g").attr("transform", `translate(0,${height - margin.bottom})`)
+            .call(d3.axisBottom(x));
+
+        svg.append("g").attr("transform", `translate(${margin.left},0)`)
+            .call(d3.axisLeft(y));
+    }
+
+    // --- AOR HEATMAP (TreeMap) ---
+function drawAORHeatmap(data) {
+    if (!data || data.length === 0) {
+        console.warn("No AOR data available for heatmap");
+        return;
+    }
+
+    // Build label with percent in brackets
+    const labels = data.map(d => {
+        const aor = d.apprehension_aor || "No Values";
+        const total = d.count ?? d.total ?? 0;
+        const percent = d.percent_of_total ? d.percent_of_total.toFixed(1) : 0;
+        return `${aor} — ${total.toLocaleString()} (${percent}%)`;
+    });
+
+    const trace = {
+        type: "treemap",
+        labels: labels,
+        parents: data.map(_ => ""),
+        values: data.map(d => d.count ?? d.total ?? 0),
+        textinfo: "label",
+        hovertemplate:
+            "<b>%{label}</b><extra></extra>",
+        marker: {
+            colors: data.map(d => d.count ?? d.total ?? 0),
+            colorscale: "Blues",
+            colorbar: { title: "count" },
+            line: { width: 1, color: "#ffffff" }
+        }
+    };
+
+    const layout = {
+        title: "Arrests by ICE Area of Responsibility",
+        width: 950,
+        height: 600,
+        margin: { t: 50, l: 25, r: 25, b: 25 },
+        paper_bgcolor: "#f8fafc",
+        plot_bgcolor: "#f8fafc",
+        font: { size: 13 }
+    };
+
+    Plotly.newPlot("aorHeatmap", [trace], layout);
+}
+
+
+    // --- Draw All Charts ---
+    drawLineChart(summaryData);
+
+    if ("gender" in summaryData[0]) {
+        drawStackedBarChart(summaryData, "gender");
+    } else if ("apprehension_criminality" in summaryData[0]) {
+        drawStackedBarChart(summaryData, "apprehension_criminality");
+    }
+
+    drawAORHeatmap(aorData);
+</script>
+{% endblock %}

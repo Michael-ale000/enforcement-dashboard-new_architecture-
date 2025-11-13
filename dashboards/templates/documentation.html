@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Immigration Enforcement Dashboard</title>
+  <style>
+    /* --- General Styles --- */
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f8f9fa;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    header {
+      background: #2c3e50;
+      color: white;
+      padding: 1rem 2rem;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+
+    /* Button Style */
+    .btn-home {
+      display: inline-block;
+      margin: 1.5rem auto;
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, #1F77B4, #4FA3E0);
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 8px;
+      transition: 0.3s;
+      text-align: center;
+    }
+
+    .btn-home:hover {
+      background: linear-gradient(135deg, #1F77B4, #4FA3E0);
+      box-shadow: 0 6px 15px rgba(231, 76, 60, 0.4);
+      transform: translateY(-2px) scale(1.05);
+    }
+
+    /* --- Start Here Section --- */
+    #start-here {
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 2rem;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    #start-here h1, #start-here h2, #start-here h3 {
+      color: #2c3e50;
+      margin-top: 2rem;
+    }
+
+    #start-here h1 {
+      font-size: 2rem;
+      border-bottom: 2px solid #1F77B4;
+      padding-bottom: 0.5rem;
+    }
+
+    #start-here h2 {
+      font-size: 1.5rem;
+      border-left: 6px solid #1F77B4;
+      padding-left: 10px;
+    }
+
+    #start-here p, #start-here ul, #start-here li {
+      margin-top: 0.8rem;
+    }
+
+    #start-here ul {
+      padding-left: 1.2rem;
+    }
+
+    #start-here ul li {
+      margin-bottom: 0.6rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <h1>Immigration Enforcement Dashboard</h1>
+  </header>
+
+  <!-- Go to Homepage Button -->
+  <div style="text-align:center;">
+    <a href="{% url 'home' %}" class="btn-home">⬅ Go to Homepage</a>
+  </div>
+
+  <!-- Start Here Section -->
+  <section id="start-here">
+    <h1>Immigration Enforcement Dashboard</h1>
+    <p>
+      The Immigration Enforcement Dashboard provides easy-to-use charts and maps showing when, where, and who ICE arrests in the United States, with other datasets to be added soon.  
+      The data comes from government records obtained through public information requests and litigation by the 
+      <a href="https://deportationdata.org/" target="_blank">Deportation Data Project</a>, but this dashboard is not affiliated with it.
+    </p>
+
+    <h2>About the Immigration Enforcement Dashboard</h2>
+    <p>
+      The Immigration Enforcement Dashboard is an independent project developed by Relevant Research to enhance public accessibility of immigration enforcement data obtained and published by the Deportation Data Project. 
+      This dashboard transforms complex administrative datasets into accessible visualizations and analysis tools for journalists, researchers, and policymakers who require validated, nonpartisan data but lack the technical infrastructure or domain expertise to independently process large-scale government datasets.The project leverages Relevant Research’s experience in administrative data analysis to broaden access to immigration enforcement information across diverse user communities and skill levels.
+      Consider also visiting our related project at <a href="https://detentionreports.com" target="_blank">DetentionReports.com</a>.
+    </p>
+
+    <h2>About the Arrest Data</h2>
+    <p>
+      This documentation focuses on arrest data, which is currently the only dataset available through the dashboard interface. Documentation for additional datasets will be provided as corresponding dashboards are released.
+    </p>
+    <ul>
+      <li><strong>Data Definition and Scope</strong>
+        <p>
+          An arrest in this dataset represents an apprehension conducted by an immigration enforcement officer within ICE Enforcement and Removal Operations (ERO).  
+          This data does not include arrest by non-ERO ICE officers, other DHS agencies and subagencies, nor federal, state, or local enforcement officers with immigration arrest authority (e.g., through 287(g) agreements).
+        </p>
+      </li>
+
+      <li><strong>Data Validation and Processing</strong>
+        <p>
+          This dataset was validated by comparing aggregate totals to publicly reported ICE statistics to verify data completeness and accuracy. This validation confirms that dashboard figures align with ICE's official public reporting, indicating adequate data production through the FOIA process. Numbers here may not align with all official government statements, either due to differences in methodology or intentional or unintentional misrepresentation of the data.
+        </p>
+        <p>
+          Data processing was intentionally kept to a minimum. Only 100% duplicated records (n=54) were consolidated to single entries. Near-duplicate records differing only in arrest time (typically within hours) were retained based on three factors: maximizing data inclusion, the technical and legal possibility of multiple daily arrests, and the absence of evidence that ICE excludes such records from public reporting.
+        </p>
+      </li>
+
+      <li><strong>Individual Identifiers and Reporting Considerations</strong>
+        <p>
+          The dataset includes unique identifiers—,randomly generated numbers linking multiple records to individual persons. Analysis indicates that 14,349 individuals (4.9% of total) experienced multiple arrests across the timespan of the dataset. Therefore, it is most accurate to refer to these data as “ICE arrests” (i.e., arrest events) rather than "people arrested." However, given the relatively small proportion of repeat arrests for any given geography and time period, the terms "ICE arrests" and "people arrested by ICE" may be used interchangeably for general audiences.
+        </p>
+      </li>
+
+      <li><strong>Field Exclusions</strong>
+        <p>
+          In this first release, some administrative fields, including arrest location and program classification, were excluded to prioritize commonly requested data categories. These fields will be incorporated in future updates. All redacted fields were excluded from the dashboard.
+        </p>
+      </li>
+
+      <li><strong>Further Reading</strong>
+        <p>
+          For an in-depth discussion of the Deportation Data Project’s arrest data from a research perspective, visit Austin Kocher’s series below:
+          <ul>
+            <li><a href="https://austinkocher.substack.com/p/a-close-look-at-ice-arrest-data-from" target="_blank">Part 1: A Close Look at ICE Arrest Data</a></li>
+            <li><a href="https://austinkocher.substack.com/p/ice-set-to-arrest-a-record-35000" target="_blank">Part 2: ICE Set to Arrest a Record 35,000 Immigrants in June</a></li>
+            <li><a href="https://austinkocher.substack.com/p/ice-arrest-surge-in-may-and-june" target="_blank">Part 3: ICE Arrest Surge Driven by Immigrants with No Criminal History</a></li>
+            <li><a href="https://austinkocher.substack.com/p/ice-book-ins-closely-match-immigration" target="_blank">Part 4: ICE Book-ins Closely Match Arrests</a></li>
+          </ul>
+        </p>
+      </li>
+    </ul>
+
+
+    <h2>Data Fields</h2>
+    <ul>
+      <li><strong>Arrest:</strong> An apprehension made by an immigration enforcement officer within Enforcement and Removal Operations. </li>
+      <li><strong>Date:</strong> Coded in ICE’s data as a calendar date and time of day. Dashboard excludes time and leaves only calendar date.</li>
+      <li><strong>State:</strong> The state in which the arrest took place. About 20% of all arrests do not include an entry in the state field.</li>
+      <li><strong>AOR:</strong> ICE is administratively organized geographically and operationally within several Areas of Responsibility. The boundaries of these AORs do not neatly conform to other state and local boundaries. Note that some arrests attributed to ICE agents from one AOR may actually take place outside of that AOR.</li>
+      <li><strong>Gender:</strong> Coded as binary male or female. A small number of records are blank or list gender as “unknown”; these are excluded from the visualizations related to gender.</li>
+      <li><strong>Criminal History:</strong>  Categorized by ICE according to whether the person, at time of arrest, was known to have a criminal conviction, pending criminal charge, or alleged immigration violations (i.e., “other immigration violator”). Coded in ICE’s data as “Apprehension Criminality.”</li>
+      <li><strong>Citizenship:</strong> The citizenship of the person arrested. Coded as “Citizenship Country” in ICE’s data. Note that a person’s citizenship, nationality, and country of birth may not be identical.</li>
+    </ul>
+
+    <h2>Dashboard Elements(from top to bottom)</h2>
+    <ul>
+      <li><strong>Total Arrests:</strong> Displays the complete count of arrest records in the dataset and the temporal range from earliest to latest recorded date. </li>
+      <li><strong>Filtering Options:</strong> Filter selections apply across all dashboard visualizations and summary statistics.</li>
+      <li><strong>Filtered Arrests:</strong> Shows the subset count of arrest records matching active filter criteria. If no filters are applied, Filtered Arrests will equal Total Arrests.</li>
+      <li><strong>Monthly Arrests (Bar Graph):</strong> Displays arrest totals by month according to active filters.</li>
+      <li><strong>Monthly Arrests (Line Graph):</strong> Presents monthly arrest trends with better ability to compare totals when composition (gender or criminal history) are displayed.</li>
+      <li><strong>Arrest Map:</strong> Geographic visualization based on the state field in source data. Excludes records with missing state entries (approximately 20% of total) and arrests occurring outside the 50 U.S. states (e.g., territories, international locations).</li>
+      <li><strong>Arrests by AOR:</strong> Shows arrest totals attributed to each ICE Area of Responsibility. AORs function as administrative divisions rather than strict jurisdictional boundaries; arrests may be attributed to AORs other than where they geographically occurred. AOR boundaries do not correspond neatly to state or local jurisdictional boundaries.</li>
+      <li><strong>Interactive Features:</strong> Bar charts and line graphs support user interaction: click-and-drag functionality enables temporal zooming, legend element selection isolates specific variables, and double-clicking resets visualizations to default view.</li>
+    </ul>
+
+    <h2>Support & Questions</h2>
+    <p>
+      We welcome user feedback, technical questions, and suggestions for dashboard improvements. Please note that Relevant Research operates with limited capacity and cannot accommodate requests for additional pro bono research or in-depth data analysis for individuals while also maintaining and improving this public dashboard for the entire public. For technical support or inquiries, contact <a href="mailto:adam@relevant-research.com">Adam at Relevant Research</a>.
+    </p>
+
+    <h2>Next Steps</h2>
+    <ul>
+      <li><strong>Current Development:</strong> We are actively maintaining and developing this dashboard, with updates to include incremental improvements to the arrest data interface, enhanced usability and accessibility features, and expansion to additional datasets from the source immigration enforcement data.</li>
+      <li><strong>Planned Features:</strong> Future releases will include dashboards for remaining datasets in the immigration enforcement data collection, improved data export functionality, a Spanish language option, and interface refinements based on user feedback.</li>
+      <li><strong>Timeline and Resources:</strong> Development timeline depends on available resources and funding. The project currently operates without dedicated funding, which affects the pace of feature development and dataset expansion. If you are interested in supporting the project, please let us know.</li>
+    </ul>
+  </section>
+
+  <!-- Footer -->
+  <footer style="background: #2c3e50; color: #fff; text-align: center; padding: 2rem; margin-top: 4rem;">
+        <p style="font-size: 1rem; font-weight: bold; margin: 0; line-height: 1.2;">
+            <span style="font-size: 1rem; vertical-align: middle;">©</span>
+            <span><a href="https://relevant-research.com" target="_blank" rel="noopener noreferrer" style="color:white; text-decoration: none;"> 2025 Relevant Research</a></span>
+        </p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,58 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Immigration Dashboard{% endblock %}</title>
+
+    <!-- Fonts & Plotly -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" as="style">
+    <link rel="preload" href="https://cdn.plot.ly/plotly-latest.min.js" as="script">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{% static 'base.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Header -->
+    <header class="header" role="banner">
+        <div class="header-content">
+            <div class="logo-section">
+                <h1>Immigration Enforcement Dashboard</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav" role="navigation" aria-label="Main navigation">
+        <div class="nav-content">
+            <ul class="nav-list">
+                <li class="nav-item"><a href="{% url 'documentation' %}">Start Here</a></li>
+                <li class="nav-item"><a href="{% url 'home' %}" class="{% block arrests_active %}{% endblock %}">Arrests</a></li>
+                <li class="nav-item"><a href="{% url 'detainers' %}" class="{% block detainers_active %}{% endblock %}">Detainers</a></li>
+                <li class="nav-item"><a href="{% url 'detentions' %}" class="{% block detentions_active %}{% endblock %}">Detentions</a></li>
+                <li class="nav-item"><a href="{% url 'encounters' %}" class="{% block encounters_active %}{% endblock %}">Encounters</a></li>
+                <li class="nav-item"><a href="{% url 'removals' %}" class="{% block removals_active %}{% endblock %}">Removals</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main id="main-content" class="main">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer style="background: #2c3e50; color: #fff; text-align: center; padding: 2rem; margin-top: 4rem;">
+        <p style="font-size: 1rem; font-weight: bold; margin: 0; line-height: 1.2;">
+            © <a href="https://relevant-research.com" target="_blank" style="color:white; text-decoration:none;">2025 Relevant Research</a>
+        </p>
+    </footer>
+
+    <!-- Scripts -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>
